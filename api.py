@@ -22,6 +22,7 @@ class AlfSession(object):
 
     # SITE MEMBER
     URL_TEMPLATE_MEMBERSHIPS_SITE=string.Template('http://$host:$port/alfresco/service/api/sites/$site/memberships?alf_ticket=$alf_ticket')
+    URL_TEMPLATE_LEAVE_MEMBERSHIPS_SITE=string.Template('http://$host:$port/alfresco/service/api/sites/$site/memberships/$group?alf_ticket=$alf_ticket')
     
     HEADERS={'content-type':'application/json','Accept':'application/json'}
     
@@ -116,12 +117,18 @@ class AlfSession(object):
         url=AlfSession.URL_TEMPLATE_SITES.substitute(host=self.host,port=self.port,alf_ticket=self.ticket,site=urllib.quote(site))
         return self.delete(url)
         
-    
-    def add_group_site_membership(self,site,group):
+    # site group memebership    
+    def group_join_site(self,site,group):
         
         url=AlfSession.URL_TEMPLATE_MEMBERSHIPS_SITE.substitute(host=host,port=port,alf_ticket=self.ticket,site=urllib.quote(site))                
         r=requests.post(url,headers=AlfSession.HEADERS, data=json.dumps(group))
         return json.loads(r.content)
+
+    def group_leave_site(self,site,group):
+        url=AlfSession.URL_TEMPLATE_LEAVE_MEMBERSHIPS_SITE.substitute(host=self.host,port=self.port,alf_ticket=self.ticket,site=urllib.quote(site),group=group)
+        r=requests.delete(url,headers=AlfSession.HEADERS)
+        return json.loads(r.content)
+
    
     def site_memberships(self,site):
         url=AlfSession.URL_TEMPLATE_MEMBERSHIPS_SITE.substitute(host=self.host,port=self.port,alf_ticket=self.ticket,site=urllib.quote(site))
@@ -150,9 +157,14 @@ alf_session=AlfSession(host,port,uid,pwd)
 
 # add a group to a site with a role
 #group={"role":"SiteConsumer",'group':{'fullName':'GROUP_group1'}}
-#pprint(alf_session.add_group_site_membership('site1',group))
+#pprint(alf_session.group_join_site('site1',group))
+
+# remove a group from a site
+#pprint(alf_session.group_leave_site('site1','GROUP_group1'))
+
 
 # list site membership
+print '******list site1 membership*****'
 pprint(alf_session.site_memberships('site1'))
 
 
@@ -179,7 +191,6 @@ for g in alf_session.groups():
 print '****groups******\n'
 
 
-# list the memberships of the site
 
 
 # log out
