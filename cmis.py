@@ -34,32 +34,38 @@ print('default repo=',repo)
 print '*************repoinfo:'
 for k,v in repo.getRepositoryInfo().items():
     print k,':',v
+print '*************repoinfo:'
 
 print '************perm defs:'
 for permDef in repo.permissionDefinitions:
     print permDef
+print '************perm defs:'
 
 
 print 'rootFolder=',repo.rootFolder
 print_chidren(repo.rootFolder)
 
-print 'CMIS getObjectByPath........'
-doc=repo.getObjectByPath('/User Homes/u1/scalable-networking.pdf')
+# create folder
 
-print doc.getObjectId()
 
-doc2=repo.getObject('workspace://SpacesStore/7348b8e7-4651-4721-8ec5-36fcc15287ca')
+# delete folder
 
-print 'title=',doc2.getTitle()
+
+#print 'CMIS getObjectByPath........'
+#doc=repo.getObjectByPath('/User Homes/u1/scalable-networking.pdf')
+#print doc.getObjectId()
+#doc2=repo.getObject('workspace://SpacesStore/7348b8e7-4651-4721-8ec5-36fcc15287ca')
+
+#print 'title=',doc2.getTitle()
 #print '\nproperties',doc2.getProperties()
 
-print_doc(doc2)
+#print_doc(doc2)
 
-with closing(doc.getContentStream()) as s:
-    content=s.read()
+#with closing(doc.getContentStream()) as s:
+#    content=s.read()
 
-with open('s.pdf','w') as f:
-    print >>f,content
+#with open('s.pdf','w') as f:
+#    print >>f,content
 
 
 #print 'CMIS query........'
