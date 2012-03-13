@@ -49,15 +49,15 @@ incose_root= repo.getObjectByPath('/incose')
 print incose_root.getObjectId()
 
 # create folder
-#folder=incose_root.createFolder('chapter1')
-#print folder.getName()
-#print folder.getObjectId()
-
-# delete folder
-folder=repo.getObjectByPath('/incose/chapter1')
+folder=incose_root.createFolder('chapter1')
 print folder.getName()
 print folder.getObjectId()
-folder.deleteTree()
+
+# delete folder
+#folder=repo.getObjectByPath('/incose/chapter1')
+#print folder.getName()
+#print folder.getObjectId()
+#folder.deleteTree()
 
 #print 'CMIS getObjectByPath........'
 #doc=repo.getObjectByPath('/User Homes/u1/scalable-networking.pdf')
