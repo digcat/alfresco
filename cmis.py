@@ -25,9 +25,11 @@ def print_doc(doc):
         print k,v,"\n"
 
 
+
 repos=cmisClient.repositories
 print('repos=',repos)
 
+# root repo
 repo = cmisClient.defaultRepository
 print('default repo=',repo)
 
@@ -42,14 +44,20 @@ for permDef in repo.permissionDefinitions:
 print '************perm defs:'
 
 
-print 'rootFolder=',repo.rootFolder
-print_chidren(repo.rootFolder)
+# get root of incose
+incose_root= repo.getObjectByPath('/incose')
+print incose_root.getObjectId()
 
 # create folder
-
+#folder=incose_root.createFolder('chapter1')
+#print folder.getName()
+#print folder.getObjectId()
 
 # delete folder
-
+folder=repo.getObjectByPath('/incose/chapter1')
+print folder.getName()
+print folder.getObjectId()
+folder.deleteTree()
 
 #print 'CMIS getObjectByPath........'
 #doc=repo.getObjectByPath('/User Homes/u1/scalable-networking.pdf')
