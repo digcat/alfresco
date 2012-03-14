@@ -8,19 +8,22 @@ import string
 
 class AlfSession(object):
 
-    # url templates
+    # generic url templates
     URL_TEMPLATE=string.Template('http://$host:$port/alfresco/service/api/$func?alf_ticket=$alf_ticket')
    
-    # login logout
+    # login logout service
     URL_TEMPLATE_LOGIN=string.Template('http://$host:$port/alfresco/service/api/login')
     URL_TEMPLATE_LOGOUT=string.Template('http://$host:$port/alfresco/service/api/login/ticket/$alf_ticket?alf_ticket=$alf_ticket&format=json')
+
+    # USER
+    URL_TEMPLATE_USER=string.Template('http://$host:$port/alfresco/service/api/people/$user?alf_ticket=$alf_ticket')
     
     # SITE
     URL_TEMPLATE_SITES=string.Template('http://$host:$port/alfresco/service/api/sites/$site?alf_ticket=$alf_ticket')
     URL_TEMPLATE_LOGIN_SITE=string.Template('http://$host:$port/share/page/dologin')
-    URL_TEMPLATE_CREATE_SITE=string.Template('http://$host:$port/share/service/modules/create-site?alf_ticket=$alf_ticket')
+    URL_TEMPLATE_CREATE_SITE=string.Template('http://$host:$port/share/service/modules/create-site')
 
-    # SITE MEMBER
+    # SITE MEMBERSHIPS
     URL_TEMPLATE_MEMBERSHIPS_SITE=string.Template('http://$host:$port/alfresco/service/api/sites/$site/memberships?alf_ticket=$alf_ticket')
     URL_TEMPLATE_LEAVE_MEMBERSHIPS_SITE=string.Template('http://$host:$port/alfresco/service/api/sites/$site/memberships/$group?alf_ticket=$alf_ticket')
     
@@ -88,8 +91,19 @@ class AlfSession(object):
         return self.get('sites')
         
 
+    # user 
     def users(self):
         return self.get('people')['people']
+
+    def add_user(self,user):
+        
+        return self.post('people',user)
+
+    def delete_user(self,user):
+
+        url=AlfSession.URL_TEMPLATE_USER.substitute(host=self.host,port=self.port,alf_ticket=self.ticket,user=urllib.quote(user))
+        return self.delete(url)
+        
        
     def groups(self):
         return self.get('groups')['data']
@@ -97,7 +111,9 @@ class AlfSession(object):
     def share_login(self):
         
         url=AlfSession.URL_TEMPLATE_LOGIN_SITE.substitute(host=self.host,port=self.port)
-        r=requests.post(url,auth=(self.uid,self.pwd))
+        payload={'username':uid,'password':pwd}
+        headers={'Content-Type':'application/x-www-form-urlencoded','User-Agent':'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0'}
+        r=requests.post(url,headers=headers,data=payload)
         return r.cookies
         
 
@@ -105,10 +121,10 @@ class AlfSession(object):
 
         #log in first
         cookies=self.share_login()
-        print cookies
+        print 'cookies=',cookies
 
         # create a session
-        url=AlfSession.URL_TEMPLATE_CREATE_SITE.substitute(host=self.host,port=self.port,alf_ticket=self.ticket)
+        url=AlfSession.URL_TEMPLATE_CREATE_SITE.substitute(host=self.host,port=self.port)
         r=requests.post(url,headers=AlfSession.HEADERS,data=json.dumps(site),cookies=cookies)
         return json.loads(r.content)
 
@@ -118,25 +134,26 @@ class AlfSession(object):
         return self.delete(url)
         
     # site group memebership    
-    def group_join_site(self,site,group):
+    def join_site(self,site,group):
         
         url=AlfSession.URL_TEMPLATE_MEMBERSHIPS_SITE.substitute(host=host,port=port,alf_ticket=self.ticket,site=urllib.quote(site))                
         r=requests.post(url,headers=AlfSession.HEADERS, data=json.dumps(group))
         return json.loads(r.content)
 
-    def group_leave_site(self,site,group):
+    def site_memberships(self,site):
+        url=AlfSession.URL_TEMPLATE_MEMBERSHIPS_SITE.substitute(host=self.host,port=self.port,alf_ticket=self.ticket,site=urllib.quote(site))
+        r=requests.get(url,headers=AlfSession.HEADERS)
+        return json.loads(r.content)
+
+
+    def leave_site(self,site,group):
         url=AlfSession.URL_TEMPLATE_LEAVE_MEMBERSHIPS_SITE.substitute(host=self.host,port=self.port,alf_ticket=self.ticket,site=urllib.quote(site),group=group)
         r=requests.delete(url,headers=AlfSession.HEADERS)
         return json.loads(r.content)
 
    
-    def site_memberships(self,site):
-        url=AlfSession.URL_TEMPLATE_MEMBERSHIPS_SITE.substitute(host=self.host,port=self.port,alf_ticket=self.ticket,site=urllib.quote(site))
-        r=requests.get(url,headers=AlfSession.HEADERS)
-        return json.loads(r.content)
         
-        
-
+    
 # configuration
 host='127.0.0.1'
 port='8080'
@@ -145,38 +162,46 @@ pwd='admin'
 
 alf_session=AlfSession(host,port,uid,pwd)
 
-#invite someone to the site
+# create a user
+user={'userName':'c2.u1','password':'password','firstName':'c2.u1.first1','lastName':'c2.u1.last1','email':'c2.u1@incose.org'}
+alf_session.add_user(user)
+
+# delete a user
+#pprint(alf_session.delete_user('u2'))
 
 #create a site
-#site={'shortName':'site2','sitePreset':'site-dashboard','title':'Chapter','description':'This is site','visibility' : 'PUBLIC'}
+#site={'shortName':'chapter1','sitePreset':'site-dashboard','title':'Chapter1','description':'This is site #1','visibility' : 'PUBLIC'}
 #pprint(alf_session.create_site(site))
 
 # delete a site
 #pprint(alf_session.delete_site('site1'))
 
 
-# add a group to a site with a role
-#group={"role":"SiteConsumer",'group':{'fullName':'GROUP_group1'}}
-#pprint(alf_session.group_join_site('site1',group))
+##add a user to a site with an admin role
+#site_admin={"role":"SiteManager",'person':{'userName':'c1.admin'}}
+#pprint(alf_session.join_site('chapter1',site_admin))
+#
+### add a group to a site with a role
+#group={"role":"SiteCollaborator",'group':{'fullName':'GROUP_chapter1'}}
+#pprint(alf_session.join_site('chapter1',group))
+##
+### add a group to a site with a role
+#group={"role":"SiteConsumer",'group':{'fullName':'GROUP_IncoseMember'}}
+#pprint(alf_session.join_site('chapter1',group))
+#
 
-# remove a group from a site
-#pprint(alf_session.group_leave_site('site1','GROUP_group1'))
+# remove a user group from a site
+#pprint(alf_session.leave_site('site1','GROUP_group1'))
 
 
 # list site membership
 print '******list site1 membership*****'
-pprint(alf_session.site_memberships('site1'))
+pprint(alf_session.site_memberships('chapter1'))
 
 
 # list all sites
 print '******list sites*****'
 pprint(alf_session.sites())
-
-
-# create a user
-#user={'userName':'u2','password':'incose','firstName':'first1','lastName':'last1','email':'u2@incose.org'}
-#user.update(data)
-#pprint(json.loads(post('people',user)))
 
 # list all users
 print '****users*****'
@@ -189,7 +214,6 @@ print '****groups******'
 for g in alf_session.groups():
     print g['shortName']
 print '****groups******\n'
-
 
 
 
