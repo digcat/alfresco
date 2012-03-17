@@ -26,6 +26,10 @@ class AlfSession(object):
     # SITE MEMBERSHIPS
     URL_TEMPLATE_MEMBERSHIPS_SITE=string.Template('http://$host:$port/alfresco/service/api/sites/$site/memberships?alf_ticket=$alf_ticket')
     URL_TEMPLATE_LEAVE_MEMBERSHIPS_SITE=string.Template('http://$host:$port/alfresco/service/api/sites/$site/memberships/$group?alf_ticket=$alf_ticket')
+
+    # Tags
+    URL_TEMPLATE_TAGS=string.Template('http://$host:$port/alfresco/service/api/node/$node_id/tags?alf_ticket=$alf_ticket&format=json')
+
     
     HEADERS={'content-type':'application/json','Accept':'application/json'}
     
@@ -151,7 +155,15 @@ class AlfSession(object):
         r=requests.delete(url,headers=AlfSession.HEADERS)
         return json.loads(r.content)
 
-   
+    def node_tags(self,id):
+        url=AlfSession.URL_TEMPLATE_TAGS.substitute(host=self.host,port=self.port,node_id=id,alf_ticket=self.ticket)
+        r=requests.get(url,headers=AlfSession.HEADERS)        
+        return r.content
+    
+    def add_tag(self,id):
+        url=AlfSession.URL_TEMPLATE_TAGS.substitute(host=self.host,port=self.port,node_id=id,alf_ticket=self.ticket)
+        r=requests.post(url,headers=AlfSession.HEADERS)        
+        return r.content
         
     
 # configuration
@@ -162,8 +174,16 @@ pwd='admin'
 
 alf_session=AlfSession(host,port,uid,pwd)
 
+
+# get tag for a node
+node_id='workspace/SpacesStore/2227abbf-64f4-4f80-955b-e441d2eebb9b'
+print json.load(alf_session.node_tags(node_id))
+
+# add a tag for a node
+#print alf_session.add_tag(node_id)
+
 # create a user
-user={'userName':'c2.u1','password':'password','firstName':'c2.u1.first1','lastName':'c2.u1.last1','email':'c2.u1@incose.org'}
+user={'userName':'external@foo.com','password':'password','firstName':'c2.u1.first1','lastName':'c2.u1.last1','email':'c2.u1@incose.org'}
 alf_session.add_user(user)
 
 # delete a user
@@ -181,7 +201,7 @@ alf_session.add_user(user)
 #site_admin={"role":"SiteManager",'person':{'userName':'c1.admin'}}
 #pprint(alf_session.join_site('chapter1',site_admin))
 #
-### add a group to a site with a role
+### add a group to a site with a role/faces/jsp/dialog/container.jsp
 #group={"role":"SiteCollaborator",'group':{'fullName':'GROUP_chapter1'}}
 #pprint(alf_session.join_site('chapter1',group))
 ##
