@@ -160,9 +160,9 @@ class AlfSession(object):
         r=requests.get(url,headers=AlfSession.HEADERS)        
         return r.content
     
-    def add_tag(self,id):
+    def add_tags(self,id,tags):
         url=AlfSession.URL_TEMPLATE_TAGS.substitute(host=self.host,port=self.port,node_id=id,alf_ticket=self.ticket)
-        r=requests.post(url,headers=AlfSession.HEADERS)        
+        r=requests.post(url,headers=AlfSession.HEADERS,data=json.dumps(tags))
         return r.content
         
     
@@ -174,17 +174,19 @@ pwd='admin'
 
 alf_session=AlfSession(host,port,uid,pwd)
 
-
 # get tag for a node
-node_id='workspace/SpacesStore/2227abbf-64f4-4f80-955b-e441d2eebb9b'
-print json.load(alf_session.node_tags(node_id))
+node_id='workspace/SpacesStore/b399fcda-3c67-498e-afb0-f8bbcb763cec'
 
 # add a tag for a node
-#print alf_session.add_tag(node_id)
+#tag=['tag1','tag2']
+#print alf_session.add_tags(node_id,tag)
+
+print alf_session.node_tags(node_id)
+
 
 # create a user
-user={'userName':'external@foo.com','password':'password','firstName':'c2.u1.first1','lastName':'c2.u1.last1','email':'c2.u1@incose.org'}
-alf_session.add_user(user)
+#user={'userName':'external@foo.com','password':'password','firstName':'c2.u1.first1','lastName':'c2.u1.last1','email':'c2.u1@incose.org'}
+#alf_session.add_user(user)
 
 # delete a user
 #pprint(alf_session.delete_user('u2'))
