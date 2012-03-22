@@ -4,14 +4,12 @@ from pprint import pprint
 from contextlib import closing
 
 
-cmisClient = cmislib.CmisClient('http://localhost:8080/alfresco/s/cmis', 'admin', 'admin')
-#cmisClient = cmislib.CmisClient('http://localhost:8080/alfresco/s/cmis', 'mjackson', 'password')
-
-
-def print_chidren(parent):
-    children = parent.getChildren()
-    for c in children:    
+def print_folder(folder):
+    print '*****print childrens of the folder', folder.getName()
+    for c in folder.getChildren():    
         print c.name
+    print '*****print childrens of the folder', folder.getName()
+
     #acl=c.getACL()
     #pprint(acl.getEntries(),indent=4)
     #print '***ations:'
@@ -20,14 +18,20 @@ def print_chidren(parent):
     #    print k,':',v
 
 
+''' print the document's properties (metadata)
+'''
 def print_doc(doc):
+    print '*****print property of doc:',doc.getTitle()
+    print 'isCheckedOut=',doc.isCheckedOut()
     for k,v in doc.properties.items():
-        print k,v,"\n"
+        print "%s,%s\n" % (k,v)
+    print '*****print property of doc:',doc.getTitle()
 
 
 
-repos=cmisClient.repositories
-print('repos=',repos)
+# log on to CMIS
+cmisClient = cmislib.CmisClient('http://localhost:8080/alfresco/s/cmis', 'admin', 'admin')
+#cmisClient = cmislib.CmisClient('http://localhost:8080/alfresco/s/cmis', 'mjackson', 'password')
 
 # root repo
 repo = cmisClient.defaultRepository
@@ -38,47 +42,49 @@ for k,v in repo.getRepositoryInfo().items():
     print k,':',v
 print '*************repoinfo:'
 
-print '************perm defs:'
-for permDef in repo.permissionDefinitions:
-    print permDef
-print '************perm defs:'
+#print '************perm defs:'
+#for permDef in repo.permissionDefinitions:
+#    print permDef
+#print '************perm defs:'
+
+# get the CMIS object for sample site 's documentLibrary
+dl_root= repo.getObjectByPath('/Sites/swsdp/documentLibrary')
 
 
-# get root of incose
-incose_root= repo.getObjectByPath('/incose')
-print incose_root.getObjectId()
+# get the CMIS sample folder and sample doc
+folder=repo.getObjectByPath('/Sites/swsdp/documentLibrary/Agency Files/Contracts/')
+print_folder(folder)
+doc=repo.getObjectByPath('/Sites/swsdp/documentLibrary/Agency Files/Contracts/Project Contract.pdf')
+print_doc(doc)
 
-# create folder
-folder=incose_root.createFolder('chapter1')
-print folder.getName()
-print folder.getObjectId()
-
-# delete folder
-#folder=repo.getObjectByPath('/incose/chapter1')
-#print folder.getName()
-#print folder.getObjectId()
-#folder.deleteTree()
-
-#print 'CMIS getObjectByPath........'
-#doc=repo.getObjectByPath('/User Homes/u1/scalable-networking.pdf')
-#print doc.getObjectId()
-#doc2=repo.getObject('workspace://SpacesStore/7348b8e7-4651-4721-8ec5-36fcc15287ca')
-
-#print 'title=',doc2.getTitle()
-#print '\nproperties',doc2.getProperties()
-
-#print_doc(doc2)
-
-#with closing(doc.getContentStream()) as s:
-#    content=s.read()
-
-#with open('s.pdf','w') as f:
-#    print >>f,content
+# retrieve the content via getContentStream() and write a file locally
+with closing(doc.getContentStream()) as s:
+    content=s.read()
+with open(doc.getTitle(),'w') as f:
+    print >>f,content
 
 
-#print 'CMIS query........'
-#results = repo.query("select * from cmis:document where contains('2012')")
-#for r in results:
-#    print_doc(r)
+# check it out
+if not doc.isCheckedOut():
+    pwc=doc.checkout()
+# check it in
+if doc.isCheckedOut():
+    with open('sample1.pdf','r') as f:
+        pwc.setContentStream(contentFile=f)
+    pwc.checkin()
+    
+# create the content via folder.createDocument
+#sample='sample1.pdf'
+#props = {'cmis:someProp':'someVal'}
+#with open(sample,'r') as f:
+#    folder.createDocument(sample, properties=props,contentFile=f)
+    
+
+
+
+print 'CMIS query........'
+results = repo.query("select * from cmis:document where contains('Project')")
+for r in results:
+    print_doc(r)
     
 
