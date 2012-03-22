@@ -81,10 +81,10 @@ if doc.isCheckedOut():
     
 
 
-
+# Perform a CMIS query
 print 'CMIS query........'
 results = repo.query("select * from cmis:document where contains('Project')")
 for r in results:
-    print_doc(r)
+    print r.getTitle()
     
 
