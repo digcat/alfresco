@@ -23,8 +23,13 @@ Module containing the sample code for an Alfresco 4.0 EE installation
 """
 
 import cmislib
+import cmislibalf
+import time, datetime
 from pprint import pprint
 from contextlib import closing
+
+
+
 
 
 def print_folder(folder):
@@ -49,6 +54,42 @@ def print_doc(doc):
     for k,v in doc.properties.items():
         print "%s,%s\n" % (k,v)
     print '*****print property of doc:',doc.getTitle()
+
+
+# Folder in the root where test docs should be created
+
+
+def create_doc(folder):
+    
+    TYPE = 'whitepaper'
+    NAME = 'sample'
+    
+    fileName = NAME + " (" + str(time.time()) + ")"
+
+    properties = {}
+    properties['cmis:objectTypeId'] = "D:sc:whitepaper"
+    properties['cmis:name'] = fileName
+
+    docText = "This is a sample whitepaper document called " + NAME
+
+    doc = folder.createDocumentFromString(fileName, properties, contentString=docText, contentType="text/plain")
+    
+    # Add two custom aspects and set aspect-related properties
+    doc.addAspect('P:sc:webable')
+    doc.addAspect('P:sc:productRelated')
+    props = {}
+    props['sc:isActive'] = True
+    props['sc:published'] = datetime.datetime(2012, 4, 1)
+    props['sc:product'] = 'IncoseProduct'
+    props['sc:version'] = '1.1'
+    doc.updateProperties(props)
+
+    print "isActive: %s" % doc.properties['sc:isActive']
+    print "published: %s" % doc.properties['sc:published']
+    print "product: %s" % doc.properties['sc:product']
+    print "version: %s" % doc.properties['sc:version']
+
+    return doc
 
 
 
@@ -95,18 +136,21 @@ if doc.isCheckedOut():
     with open('sample1.pdf','r') as f:
         pwc.setContentStream(contentFile=f)
     pwc.checkin()
-    
-# create the content via folder.createDocument
-#sample='sample1.pdf'
-#props = {'cmis:someProp':'someVal'}
-#with open(sample,'r') as f:
-#    folder.createDocument(sample, properties=props,contentFile=f)
-    
 
+
+# create a folder and upload custom content via folder.createDocument
+
+#root = repo.getRootFolder()
+#folder=repo.createFolder(root,'demo')
+
+folder=repo.getObjectByPath('/demo')
+doc=create_doc(folder)
+#print the custom content
+print_doc(doc)
 
 # Perform a CMIS query
 print 'CMIS query........'
-results = repo.query("select * from cmis:document where contains('Project')")
+results = repo.query("select * from sc:doc")
 for r in results:
     print r.getTitle()
     
