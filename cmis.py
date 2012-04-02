@@ -56,7 +56,18 @@ def print_doc(doc):
     print '*****print property of doc:',doc.getTitle()
 
 
-# Folder in the root where test docs should be created
+    
+def print_rs(resultSet):
+        iCount = 0
+        for res in resultSet:
+            print "----------------------\r\nResult %s:" % iCount
+            print "id:%s" % res.id
+            print "name:%s" % res.name
+            print "created:%s" % res.properties['cmis:creationDate']
+            iCount += 1
+
+
+
 
 
 def create_doc(folder):
@@ -151,7 +162,5 @@ print_doc(doc)
 # Perform a CMIS query
 print 'CMIS query........'
 results = repo.query("select * from sc:doc")
-for r in results:
-    print r.getTitle()
-    
+print_rs(results)    
 

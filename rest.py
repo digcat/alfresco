@@ -155,6 +155,8 @@ class AlfSession(object):
         r=requests.delete(url,headers=AlfSession.HEADERS)
         return json.loads(r.content)
 
+    ''' Free tags
+    ''' 
     def node_tags(self,id):
         url=AlfSession.URL_TEMPLATE_TAGS.substitute(host=self.host,port=self.port,node_id=id,alf_ticket=self.ticket)
         r=requests.get(url,headers=AlfSession.HEADERS)        
@@ -164,7 +166,15 @@ class AlfSession(object):
         url=AlfSession.URL_TEMPLATE_TAGS.substitute(host=self.host,port=self.port,node_id=id,alf_ticket=self.ticket)
         r=requests.post(url,headers=AlfSession.HEADERS,data=json.dumps(tags))
         return r.content
-        
+
+    ''' add/remove group a permission from a folder
+    '''
+    
+    
+    
+    ''' start and initate a workflow
+    '''''
+            
     
 # configuration
 host='127.0.0.1'
