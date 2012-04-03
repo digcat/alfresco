@@ -17,6 +17,13 @@ class AlfSession(object):
 
     # USER
     URL_TEMPLATE_USER=string.Template('http://$host:$port/alfresco/service/api/people/$user?alf_ticket=$alf_ticket')
+
+    #Groups
+    URL_TEMPLATE_ROOTGROUPS_LIST=string.Template('http://$host:$port/alfresco/service/api/rootgroups?alf_ticket=$alf_ticket')
+    URL_TEMPLATE_ROOTGROUPS=string.Template('http://$host:$port/alfresco/service/api/rootgroups/$shortName?alf_ticket=$alf_ticket')
+
+    #User's group membership
+    URL_TEMPLATE_GROUP_MEMBERSHIP=string.Template('http://$host:$port/alfresco/service/api/groups/$shortName/children/$fullAuthorityName?alf_ticket=$alf_ticket')
     
     # SITE
     URL_TEMPLATE_SITES=string.Template('http://$host:$port/alfresco/service/api/sites/$site?alf_ticket=$alf_ticket')
@@ -29,6 +36,10 @@ class AlfSession(object):
 
     # Tags
     URL_TEMPLATE_TAGS=string.Template('http://$host:$port/alfresco/service/api/node/$node_id/tags?alf_ticket=$alf_ticket&format=json')
+
+
+    # Workflow
+    URL_TEMPLATE_WORKFLOWDEFS=string.Template('http://$host:$port/alfresco/service/api/workflow-definitions?alf_ticket=$alf_ticket')
 
     
     HEADERS={'content-type':'application/json','Accept':'application/json'}
@@ -95,7 +106,7 @@ class AlfSession(object):
         return self.get('sites')
         
 
-    # user 
+    # list users 
     def users(self):
         return self.get('people')['people']
 
@@ -108,9 +119,69 @@ class AlfSession(object):
         url=AlfSession.URL_TEMPLATE_USER.substitute(host=self.host,port=self.port,alf_ticket=self.ticket,user=urllib.quote(user))
         return self.delete(url)
         
-       
+    # list groups       
     def groups(self):
-        return self.get('groups')['data']
+
+        url=AlfSession.URL_TEMPLATE_ROOTGROUPS_LIST.substitute(host=self.host,port=self.port,alf_ticket=self.ticket)
+                        
+        r=requests.get(url,headers=AlfSession.HEADERS)
+        return json.loads(r.content) ['data']
+
+    ''' add a group
+    '''
+    def add_group(self, group_name, display_name):
+
+        url=AlfSession.URL_TEMPLATE_ROOTGROUPS.substitute(host=self.host,port=self.port,alf_ticket=self.ticket,shortName=urllib.quote(group_name))
+                        
+        payload={'displayName':display_name}                                
+        r=requests.post(url,headers=AlfSession.HEADERS, data=json.dumps(payload))
+        return json.loads(r.content)
+
+   
+    ''' remove a group
+    '''
+    def remove_group(self, group_name):
+
+        url=AlfSession.URL_TEMPLATE_ROOTGROUPS.substitute(host=self.host,port=self.port,alf_ticket=self.ticket,shortName=urllib.quote(group_name))
+                        
+        r=requests.delete(url,headers=AlfSession.HEADERS)
+        return json.loads(r.content)
+
+
+   
+    '''A user joining a group
+    '''
+    def join_group(self,user,group):
+        
+        url=AlfSession.URL_TEMPLATE_GROUP_MEMBERSHIP.substitute(host=host,port=port,alf_ticket=self.ticket,shortName=urllib.quote(group),fullAuthorityName=urllib.quote(user))
+        r=requests.post(url,headers=AlfSession.HEADERS)
+        return json.loads(r.content)
+  
+   
+    '''A user leaves a group
+    '''
+    def leave_group(self,user,group):
+        
+        url=AlfSession.URL_TEMPLATE_GROUP_MEMBERSHIP.substitute(host=host,port=port,alf_ticket=self.ticket,shortName=urllib.quote(group),fullAuthorityName=urllib.quote(user))
+        r=requests.delete(url,headers=AlfSession.HEADERS)
+        return json.loads(r.content)
+   
+   
+    ''' Add/remove group a permission from a folder
+    '''
+    
+
+    
+    ''' start and initate a workflow
+    '''''
+    def workflowdefs(self):
+        
+        url=AlfSession.URL_TEMPLATE_WORKFLOWDEFS.substitute(host=self.host,port=self.port,alf_ticket=self.ticket)
+                        
+        r=requests.get(url,headers=AlfSession.HEADERS)
+        return json.loads(r.content)
+
+    
    
     def share_login(self):
         
@@ -167,13 +238,7 @@ class AlfSession(object):
         r=requests.post(url,headers=AlfSession.HEADERS,data=json.dumps(tags))
         return r.content
 
-    ''' add/remove group a permission from a folder
-    '''
     
-    
-    
-    ''' start and initate a workflow
-    '''''
             
     
 # configuration
@@ -247,6 +312,20 @@ for g in alf_session.groups():
     print g['shortName']
 print '****groups******\n'
 
+# root group management
+group='chapter3'
+#print alf_session.add_group(group, 'Chapter 3 of Incose')
+#print alf_session.remove_group(group)
+
+# user group membership
+#user={'userName':'c3.u1','password':'password','firstName':'c3.u1.first','lastName':'c3.u1.last','email':'c3.u1@incose.org'}
+#print alf_session.add_user(user)
+#print alf_session.join_group('c3.u1',group)
+#print alf_session.leave_group('c3.u1',group)
+
+
+# workflow definitions
+pprint(alf_session.workflowdefs())
 
 
 # log out
