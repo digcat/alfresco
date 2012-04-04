@@ -184,15 +184,16 @@ folder=repo.getObjectByPath('/demo')
 
 # add permission
 print '**************add permission*********'
+group='GROUP_demogrp'
 acl =cmislib.model.ACL()
-acl.addEntry(cmislib.model.ACE('GROUP_chapter1',ROLES['CONTRIBUTOR'], 'true'))
+acl.addEntry(cmislib.model.ACE(group,ROLES['CONTRIBUTOR'], 'true'))
 print folder.applyACL(acl)
 print_acl(folder.getACL())
 
 print '**************remove permission*******'
 # remove permission
 acl = folder.getACL()
-acl.removeEntry('GROUP_chapter1')
+#acl.removeEntry(group)
 print folder.applyACL(acl)
 print_acl(folder.getACL())
 
