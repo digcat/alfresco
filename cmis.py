@@ -23,12 +23,21 @@ Module containing the sample code for an Alfresco 4.0 EE installation
 """
 
 import cmislib
+import cmislib.model
 import cmislibalf
 import time, datetime
 from pprint import pprint
 from contextlib import closing
 
 
+
+ROLES = dict(
+CONSUMER = "{http://www.alfresco.org/model/content/1.0}cmobject.Consumer",
+EDITOR = "{http://www.alfresco.org/model/content/1.0}cmobject.Editor",
+CONTRIBUTOR = "{http://www.alfresco.org/model/content/1.0}cmobject.Contributor",
+COLLABORATOR = "{http://www.alfresco.org/model/content/1.0}cmobject.Collaborator",
+COORDINATOR = "{http://www.alfresco.org/model/content/1.0}cmobject.Coordinator",
+)
 
 
 
@@ -66,6 +75,13 @@ def print_rs(resultSet):
             print "created:%s" % res.properties['cmis:creationDate']
             iCount += 1
 
+
+
+def print_acl(acl):
+    for ace in acl.entries.values():
+        print 'principal:%s has the following permissions...' % ace.principalId
+        for perm in ace.permissions:
+             print perm
 
 
 
@@ -110,12 +126,12 @@ cmisClient = cmislib.CmisClient('http://localhost:8080/alfresco/s/cmis', 'admin'
 
 # root repo
 repo = cmisClient.defaultRepository
-print('default repo=',repo)
+print('repo permdef=',repo.getPermissionDefinitions())
 
-print '*************repoinfo:'
-for k,v in repo.getRepositoryInfo().items():
-    print k,':',v
-print '*************repoinfo:'
+#print '*************repoinfo:'
+#for k,v in repo.getRepositoryInfo().items():
+#    print k,':',v
+#print '*************repoinfo:'
 
 #print '************perm defs:'
 #for permDef in repo.permissionDefinitions:
@@ -140,13 +156,13 @@ with open(doc.getTitle(),'w') as f:
 
 
 # check it out
-if not doc.isCheckedOut():
-    pwc=doc.checkout()
-# check it in
-if doc.isCheckedOut():
-    with open('sample1.pdf','r') as f:
-        pwc.setContentStream(contentFile=f)
-    pwc.checkin()
+#if not doc.isCheckedOut():
+#    pwc=doc.checkout()
+## check it in
+#if doc.isCheckedOut():
+#    with open('sample1.pdf','r') as f:
+#        pwc.setContentStream(contentFile=f)
+#    pwc.checkin()
 
 
 # create a folder and upload custom content via folder.createDocument
@@ -154,13 +170,30 @@ if doc.isCheckedOut():
 #root = repo.getRootFolder()
 #folder=repo.createFolder(root,'demo')
 
+
 folder=repo.getObjectByPath('/demo')
-doc=create_doc(folder)
-#print the custom content
-print_doc(doc)
+#doc=create_doc(folder)
+##print the custom content
+#print_doc(doc)
 
 # Perform a CMIS query
-print 'CMIS query........'
-results = repo.query("select * from sc:doc")
-print_rs(results)    
+#print 'CMIS query........'
+#results = repo.query("select * from sc:doc")
+#print_rs(results)    
+
+
+# add permission
+print '**************add permission*********'
+acl =cmislib.model.ACL()
+acl.addEntry(cmislib.model.ACE('GROUP_chapter1',ROLES['CONTRIBUTOR'], 'true'))
+print folder.applyACL(acl)
+print_acl(folder.getACL())
+
+print '**************remove permission*******'
+# remove permission
+acl = folder.getACL()
+acl.removeEntry('GROUP_chapter1')
+print folder.applyACL(acl)
+print_acl(folder.getACL())
+
 

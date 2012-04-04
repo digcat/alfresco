@@ -313,18 +313,19 @@ for g in alf_session.groups():
 print '****groups******\n'
 
 # root group management
-group='chapter3'
-#print alf_session.add_group(group, 'Chapter 3 of Incose')
+group='chapter1'
+#print alf_session.add_group(group, 'Chapter 1 of Incose')
 #print alf_session.remove_group(group)
 
 # user group membership
-#user={'userName':'c3.u1','password':'password','firstName':'c3.u1.first','lastName':'c3.u1.last','email':'c3.u1@incose.org'}
+user={'userName':'c4.u1','password':'password','firstName':'c4.u1.first','lastName':'c4.u1.last','email':'c4.u1@incose.org'}
 #print alf_session.add_user(user)
-#print alf_session.join_group('c3.u1',group)
-#print alf_session.leave_group('c3.u1',group)
+#print alf_session.join_group('c4.u1',group)
+#print alf_session.leave_group('c4.u1',group)
 
 
 # workflow definitions
+#
 pprint(alf_session.workflowdefs())
 
 
