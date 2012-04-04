@@ -182,7 +182,7 @@ results = repo.query("select * from sc:doc")
 print_rs(results)    
 
 
-# add permission
+# add role
 print '**************add permission*********'
 group='GROUP_demogrp'
 acl =cmislib.model.ACL()
@@ -191,7 +191,7 @@ print folder.applyACL(acl)
 print_acl(folder.getACL())
 
 print '**************remove permission*******'
-# remove permission
+# remove role
 acl = folder.getACL()
 #acl.removeEntry(group)
 print folder.applyACL(acl)
