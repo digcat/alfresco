@@ -177,9 +177,9 @@ folder=repo.getObjectByPath('/demo')
 #print_doc(doc)
 
 # Perform a CMIS query
-#print 'CMIS query........'
-#results = repo.query("select * from sc:doc")
-#print_rs(results)    
+print 'CMIS query........'
+results = repo.query("select * from sc:doc")
+print_rs(results)    
 
 
 # add permission
