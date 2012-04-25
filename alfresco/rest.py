@@ -66,7 +66,10 @@ class AlfSession(object):
 
     # Workflow
     URL_TEMPLATE_WORKFLOWDEFS=string.Template('http://$host:$port/alfresco/service/api/workflow-definitions?alf_ticket=$alf_ticket')
-
+    
+    # Audit
+    URL_TEMPLATE_AUDIT_CLEAR=string.Template('http://$host:$port/alfresco/service/api/audit/clear/$application?alf_ticket=$alf_ticket')
+    
     
     HEADERS={'content-type':'application/json','Accept':'application/json'}
     
@@ -237,7 +240,7 @@ class AlfSession(object):
     # site group memebership    
     def join_site(self,site,group):
         
-        url=AlfSession.URL_TEMPLATE_MEMBERSHIPS_SITE.substitute(host=host,port=port,alf_ticket=self.ticket,site=urllib.quote(site))                
+        url=AlfSession.URL_TEMPLATE_MEMBERSHIPS_SITE.substitute(host=self.host,port=self.port,alf_ticket=self.ticket,site=urllib.quote(site))                
         r=requests.post(url,headers=AlfSession.HEADERS, data=json.dumps(group))
         return json.loads(r.content)
 
@@ -264,6 +267,14 @@ class AlfSession(object):
         r=requests.post(url,headers=AlfSession.HEADERS,data=json.dumps(tags))
         return r.content
 
+    ''' Audit Service
+    '''
+    def clear_audit_trial(self,app):
+        
+        url=AlfSession.URL_TEMPLATE_AUDIT_CLEAR.substitute(host=self.host,port=self.port,alf_ticket=self.ticket,application=urllib.quote(app))                
+        r=requests.post(url,headers=AlfSession.HEADERS)
+        return r.content
+
     
             
 def test():    
@@ -273,6 +284,11 @@ def test():
     port='8080'
     uid='admin'
     pwd='admin'
+    
+    host='108.171.177.147'
+    port='80'
+    uid='admin'
+    pwd='NRG211EnergyPrince'
 
   
     alf_session=AlfSession(host,port,uid,pwd)
@@ -317,15 +333,18 @@ def test():
     # remove a user group from a site
     #pprint(alf_session.leave_site('site1','GROUP_group1'))
     
+    # clear audit log
+    pprint(alf_session.clear_audit_trial('alfresco-access'))
+    
     
     # list site membership
-    print '******list site1 membership*****'
-    pprint(alf_session.site_memberships('site1'))
-    
+    #print '******list site1 membership*****'
+    #pprint(alf_session.site_memberships('site1'))
+    #
     
     # list all sites
-    print '******list sites*****'
-    pprint(alf_session.sites())
+    #print '******list sites*****'
+    #pprint(alf_session.sites())
     
     # list all users
     print '****users*****'
@@ -340,14 +359,14 @@ def test():
     print '****groups******\n'
     
     # root group management
-    group='demogrp'
-    print alf_session.add_group(group, 'DemoGroup')
-    #print alf_session.remove_group(group)
+    #group='demogrp'
+    #print alf_session.add_group(group, 'DemoGroup')
+    ##print alf_session.remove_group(group)
     
     # user group membership
-    user_id='demouser'
-    user={'userName':user_id,'password':'password','firstName':'demo.first','lastName':'demo.last','email':'demo@alfresco.com'}
-    #print alf_session.add_user(user)
+    #user_id='demouser'
+    #user={'userName':user_id,'password':'password','firstName':'demo.first','lastName':'demo.last','email':'demo@alfresco.com'}
+    ##print alf_session.add_user(user)
     #print alf_session.join_group(user_id,group)
     #print alf_session.leave_group('c4.u1',group)
     
