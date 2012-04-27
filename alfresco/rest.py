@@ -212,7 +212,7 @@ class AlfSession(object):
     
     ''' start and initate a workflow
     '''''
-    def workflow_defs(self):
+    def wf_defs(self):
         
         url=AlfSession.URL_TEMPLATE_WF_DEFS.substitute(self.__dict__)
                         
@@ -405,7 +405,7 @@ def test():
     # workflow instances
     #
     print '*************wf lists:'
-    pprint(alf_session.wf_instances())
+    pprint(alf_session.wf_defs())
     
     # task list by user
     print '*************task lists:'
