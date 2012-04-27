@@ -28,9 +28,7 @@ from pprint import pprint
 import requests
 import urllib
 import string
-
-
-    
+import logging
 
 class AlfSession(object):
 
@@ -87,18 +85,24 @@ class AlfSession(object):
         self.uid=uid
         self.pwd=pwd
 
-    
+        self.logger = logging.getLogger('alfresco.rest')
+        self.logger.info('Creating an instance of AlfrescoSession')
 
-        url_login=AlfSession.URL_TEMPLATE_LOGIN.substitute(self.__dict__)
+        self.url_login=AlfSession.URL_TEMPLATE_LOGIN.substitute(self.__dict__)
         payload={'username':uid,'password':pwd}                
-        r=requests.post(url_login,headers=AlfSession.HEADERS,data=json.dumps(payload))
+        r=requests.post(self.url_login,headers=AlfSession.HEADERS,data=json.dumps(payload))
 
         
         if r.status_code:
             self.alf_ticket=json.loads(r.content)['data']['ticket']
             
         else:
-            print 'duh, alfresco problem?: ', r.status_code
+            slef.logger.warn('duh, alfresco problem? status={} '.format(r.status_code))
+
+    def __str__(self):
+        """To string"""
+        return 'Alfresco client connection to {}'.format(self.url_login)
+
         
 
     def logout(self):
@@ -254,7 +258,7 @@ class AlfSession(object):
 
         #log in first
         cookies=self.share_login()
-        print 'cookies=',cookies
+    
 
         # create a session
         url=AlfSession.URL_TEMPLATE_CREATE_SITE.substitute(self.__dict__)
@@ -323,7 +327,7 @@ def test():
 
   
     alf_session=AlfSession(host,port,uid,pwd)
-    
+    print(alf_session)
     # get tag for a node
     #node_id='workspace/SpacesStore/b399fcda-3c67-498e-afb0-f8bbcb763cec'
     
@@ -412,6 +416,8 @@ def test():
     tasks=alf_session.task_instances('vyang')
     for t in tasks:
         print t['id']
+    
+    
     
     # log out
     if alf_session.logout():

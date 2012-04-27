@@ -119,82 +119,83 @@ def create_doc(folder):
     return doc
 
 
+def test():
+    # log on to CMIS
+    cmisClient = cmislib.CmisClient('http://localhost:8080/alfresco/s/cmis', 'admin', 'admin')
+    #cmisClient = cmislib.CmisClient('http://localhost:8080/alfresco/s/cmis', 'mjackson', 'password')
+    
+    # root repo
+    repo = cmisClient.defaultRepository
+    print('repo permdef=',repo.getPermissionDefinitions())
+    
+    #print '*************repoinfo:'
+    #for k,v in repo.getRepositoryInfo().items():
+    #    print k,':',v
+    #print '*************repoinfo:'
+    
+    #print '************perm defs:'
+    #for permDef in repo.permissionDefinitions:
+    #    print permDef
+    #print '************perm defs:'
+    
+    # get the CMIS object for sample site 's documentLibrary
+    dl_root= repo.getObjectByPath('/Sites/swsdp/documentLibrary')
+    
+    
+    # get the CMIS sample folder and sample doc
+    folder=repo.getObjectByPath('/Sites/swsdp/documentLibrary/Agency Files/Contracts/')
+    print_folder(folder)
+    doc=repo.getObjectByPath('/Sites/swsdp/documentLibrary/Agency Files/Contracts/Project Contract.pdf')
+    print_doc(doc)
+    
+    # retrieve the content via getContentStream() and write a file locally
+    with closing(doc.getContentStream()) as s:
+        content=s.read()
+    with open(doc.getTitle(),'w') as f:
+        print >>f,content
+    
+    
+    # check it out
+    #if not doc.isCheckedOut():
+    #    pwc=doc.checkout()
+    ## check it in
+    #if doc.isCheckedOut():
+    #    with open('sample1.pdf','r') as f:
+    #        pwc.setContentStream(contentFile=f)
+    #    pwc.checkin()
+    
+    
+    # create a folder and upload custom content via folder.createDocument
+    
+    #root = repo.getRootFolder()
+    #folder=repo.createFolder(root,'demo')
+    
+    
+    folder=repo.getObjectByPath('/demo')
+    #doc=create_doc(folder)
+    ##print the custom content
+    #print_doc(doc)
+    
+    # Perform a CMIS query
+    print 'CMIS query........'
+    results = repo.query("select * from sc:doc")
+    print_rs(results)    
+    
+    
+    # add role
+    print '**************add permission*********'
+    group='GROUP_demogrp'
+    acl =cmislib.model.ACL()
+    acl.addEntry(cmislib.model.ACE(group,ROLES['CONTRIBUTOR'], 'true'))
+    print folder.applyACL(acl)
+    print_acl(folder.getACL())
+    
+    print '**************remove permission*******'
+    # remove role
+    acl = folder.getACL()
+    #acl.removeEntry(group)
+    print folder.applyACL(acl)
+    print_acl(folder.getACL())
 
-# log on to CMIS
-cmisClient = cmislib.CmisClient('http://localhost:8080/alfresco/s/cmis', 'admin', 'admin')
-#cmisClient = cmislib.CmisClient('http://localhost:8080/alfresco/s/cmis', 'mjackson', 'password')
-
-# root repo
-repo = cmisClient.defaultRepository
-print('repo permdef=',repo.getPermissionDefinitions())
-
-#print '*************repoinfo:'
-#for k,v in repo.getRepositoryInfo().items():
-#    print k,':',v
-#print '*************repoinfo:'
-
-#print '************perm defs:'
-#for permDef in repo.permissionDefinitions:
-#    print permDef
-#print '************perm defs:'
-
-# get the CMIS object for sample site 's documentLibrary
-dl_root= repo.getObjectByPath('/Sites/swsdp/documentLibrary')
-
-
-# get the CMIS sample folder and sample doc
-folder=repo.getObjectByPath('/Sites/swsdp/documentLibrary/Agency Files/Contracts/')
-print_folder(folder)
-doc=repo.getObjectByPath('/Sites/swsdp/documentLibrary/Agency Files/Contracts/Project Contract.pdf')
-print_doc(doc)
-
-# retrieve the content via getContentStream() and write a file locally
-with closing(doc.getContentStream()) as s:
-    content=s.read()
-with open(doc.getTitle(),'w') as f:
-    print >>f,content
-
-
-# check it out
-#if not doc.isCheckedOut():
-#    pwc=doc.checkout()
-## check it in
-#if doc.isCheckedOut():
-#    with open('sample1.pdf','r') as f:
-#        pwc.setContentStream(contentFile=f)
-#    pwc.checkin()
-
-
-# create a folder and upload custom content via folder.createDocument
-
-#root = repo.getRootFolder()
-#folder=repo.createFolder(root,'demo')
-
-
-folder=repo.getObjectByPath('/demo')
-#doc=create_doc(folder)
-##print the custom content
-#print_doc(doc)
-
-# Perform a CMIS query
-print 'CMIS query........'
-results = repo.query("select * from sc:doc")
-print_rs(results)    
-
-
-# add role
-print '**************add permission*********'
-group='GROUP_demogrp'
-acl =cmislib.model.ACL()
-acl.addEntry(cmislib.model.ACE(group,ROLES['CONTRIBUTOR'], 'true'))
-print folder.applyACL(acl)
-print_acl(folder.getACL())
-
-print '**************remove permission*******'
-# remove role
-acl = folder.getACL()
-#acl.removeEntry(group)
-print folder.applyACL(acl)
-print_acl(folder.getACL())
-
-
+if __name__ == '__main__':
+    test()
