@@ -30,6 +30,15 @@ import urllib
 import string
 import logging
 
+
+logger = logging.getLogger('alfresco.rest')
+hdlr = logging.FileHandler('alf_rest.log')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr)
+logger.setLevel(logging.INFO)
+
+
 class AlfSession(object):
 
     # generic url templates
@@ -85,37 +94,35 @@ class AlfSession(object):
         self.uid=uid
         self.pwd=pwd
 
-        self.logger = logging.getLogger('alfresco.rest')
-        self.logger.info('Creating an instance of AlfrescoSession')
+    def __enter__(self):
 
         self.url_login=AlfSession.URL_TEMPLATE_LOGIN.substitute(self.__dict__)
-        payload={'username':uid,'password':pwd}                
+        payload={'username':self.uid,'password':self.pwd}                
         r=requests.post(self.url_login,headers=AlfSession.HEADERS,data=json.dumps(payload))
-
         
         if r.status_code:
-            self.alf_ticket=json.loads(r.content)['data']['ticket']
-            
+            self.alf_ticket=json.loads(r.content)['data']['ticket']            
         else:
-            slef.logger.warn('duh, alfresco problem? status={} '.format(r.status_code))
+            self.logger.warn('duh, alfresco problem? status={} '.format(r.status_code))
+            
+        logger.info('Creating an instance of AlfrescoSession {}'.format(self.alf_ticket))
+    
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        
+        url=AlfSession.URL_TEMPLATE_LOGOUT.substitute(self.__dict__)    
+        r=requests.delete(url,headers=AlfSession.HEADERS)        
+
+        status_code=json.loads(r.content)['status']['code']
+        if status_code<>200:
+           self.logger.warn('duh, alfresco problem? status={} '.format(status_code))
+        logger.info('session {} is finished'.format(self.alf_ticket))
+
 
     def __str__(self):
         """To string"""
-        return 'Alfresco client connection to {}'.format(self.url_login)
-
-        
-
-    def logout(self):
-        
-        url=AlfSession.URL_TEMPLATE_LOGOUT.substitute(self.__dict__)    
-        r=requests.delete(url,headers=AlfSession.HEADERS)
-        response=json.loads(r.content)
-        
-        status_code=response['status']['code']
-        
-        return status_code==200
-    
-    
+        return 'Alfresco client connection to {0} with {1}'.format(self.url_login,self.alf_ticket)            
     
     def post(self,func,payload):    
 
@@ -326,104 +333,99 @@ def test():
     #pwd='NRG211EnergyPrince'
 
   
-    alf_session=AlfSession(host,port,uid,pwd)
-    print(alf_session)
-    # get tag for a node
-    #node_id='workspace/SpacesStore/b399fcda-3c67-498e-afb0-f8bbcb763cec'
+    with AlfSession(host,port,uid,pwd) as alf_session:
+        
+        print(alf_session)
+        # get tag for a node
+        #node_id='workspace/SpacesStore/b399fcda-3c67-498e-afb0-f8bbcb763cec'
+        
+        # add a tag for a node
+        #tag=['tag1','tag2']
+        #print alf_session.add_tags(node_id,tag)    
+        #print alf_session.node_tags(node_id)
+        
+        
+        # create a user
+        user={'userName':'u1','password':'password','firstName':'u1.first1','lastName':'u1.last1','email':'u1@example.com'}
+        #alf_session.add_user(user)
+        
+        # delete a user
+        #pprint(alf_session.delete_user('sglen'))
+        
+        #create a site
+        #site={'shortName':'chapter1','sitePreset':'site-dashboard','title':'Chapter1','description':'This is site #1','visibility' : 'PUBLIC'}
+        #pprint(alf_session.create_site(site))
+        
+        # delete a site
+        #pprint(alf_session.delete_site('site1'))
+        
+        
+        ##add a user to a site with an admin role
+        #site_admin={"role":"SiteManager",'person':{'userName':'c1.admin'}}
+        #pprint(alf_session.join_site('chapter1',site_admin))
+        #
+        ### add a group to a site with a role/faces/jsp/dialog/container.jsp
+        #group={"role":"SiteCollaborator",'group':{'fullName':'GROUP_chapter1'}}
+        #pprint(alf_session.join_site('chapter1',group))
+        ##
+        ### add a group to a site with a role
+        #group={"role":"SiteConsumer",'group':{'fullName':'GROUP_IncoseMember'}}
+        #pprint(alf_session.join_site('chapter1',group))
+        #
+        
+        # remove a user group from a site
+        #pprint(alf_session.leave_site('site1','GROUP_group1'))
+        
+        # clear audit log
+        #pprint(alf_session.clear_audit_trial('alfresco-access'))
+        
+        
+        # list site membership
+        #print '******list site1 membership*****'
+        #pprint(alf_session.site_memberships('site1'))
+        #
+        
+        # list all sites
+        #print '******list sites*****'
+        #pprint(alf_session.sites())
+        
+        
+        # root group management
+        group='demogrp'
+        #print alf_session.add_group(group, 'DemoGroup')
+        #print alf_session.remove_group(group)
+        
+        # user group membership
+        user_id='u1'
+        #print alf_session.join_group(user_id,group)
+        #print alf_session.leave_group(user_id,group)
+        
+        
+        # list all users
+        print '****users*****'
+        for p in alf_session.users():
+            print p['userName']
+        print '****users*****\n'    
+        
+        # list all the groups
+        print '****groups******'
+        for g in alf_session.groups():
+            print g['shortName']
+        print '****groups******\n'
+        
+        
+        # workflow instances
+        #
+        print '*************wf lists:'
+        pprint(alf_session.wf_defs())
+        
+        # task list by user
+        print '*************task lists:'
+        tasks=alf_session.task_instances('vyang')
+        for t in tasks:
+            print t['id']
     
-    # add a tag for a node
-    #tag=['tag1','tag2']
-    #print alf_session.add_tags(node_id,tag)    
-    #print alf_session.node_tags(node_id)
     
     
-    # create a user
-    user={'userName':'u1','password':'password','firstName':'u1.first1','lastName':'u1.last1','email':'u1@example.com'}
-    #alf_session.add_user(user)
-    
-    # delete a user
-    #pprint(alf_session.delete_user('sglen'))
-    
-    #create a site
-    #site={'shortName':'chapter1','sitePreset':'site-dashboard','title':'Chapter1','description':'This is site #1','visibility' : 'PUBLIC'}
-    #pprint(alf_session.create_site(site))
-    
-    # delete a site
-    #pprint(alf_session.delete_site('site1'))
-    
-    
-    ##add a user to a site with an admin role
-    #site_admin={"role":"SiteManager",'person':{'userName':'c1.admin'}}
-    #pprint(alf_session.join_site('chapter1',site_admin))
-    #
-    ### add a group to a site with a role/faces/jsp/dialog/container.jsp
-    #group={"role":"SiteCollaborator",'group':{'fullName':'GROUP_chapter1'}}
-    #pprint(alf_session.join_site('chapter1',group))
-    ##
-    ### add a group to a site with a role
-    #group={"role":"SiteConsumer",'group':{'fullName':'GROUP_IncoseMember'}}
-    #pprint(alf_session.join_site('chapter1',group))
-    #
-    
-    # remove a user group from a site
-    #pprint(alf_session.leave_site('site1','GROUP_group1'))
-    
-    # clear audit log
-    #pprint(alf_session.clear_audit_trial('alfresco-access'))
-    
-    
-    # list site membership
-    #print '******list site1 membership*****'
-    #pprint(alf_session.site_memberships('site1'))
-    #
-    
-    # list all sites
-    #print '******list sites*****'
-    #pprint(alf_session.sites())
-    
-    
-    # root group management
-    group='demogrp'
-    #print alf_session.add_group(group, 'DemoGroup')
-    #print alf_session.remove_group(group)
-    
-    # user group membership
-    user_id='u1'
-    #print alf_session.join_group(user_id,group)
-    #print alf_session.leave_group(user_id,group)
-    
-    
-    # list all users
-    print '****users*****'
-    for p in alf_session.users():
-        print p['userName']
-    print '****users*****\n'    
-    
-    # list all the groups
-    print '****groups******'
-    for g in alf_session.groups():
-        print g['shortName']
-    print '****groups******\n'
-    
-    
-    # workflow instances
-    #
-    print '*************wf lists:'
-    pprint(alf_session.wf_defs())
-    
-    # task list by user
-    print '*************task lists:'
-    tasks=alf_session.task_instances('vyang')
-    for t in tasks:
-        print t['id']
-    
-    
-    
-    # log out
-    if alf_session.logout():
-        print uid,' log out successfully'
-    else:
-        print uid,'log out error'
-   
 if __name__ == '__main__':
     test()
