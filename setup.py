@@ -14,7 +14,7 @@ setup(
     url='http://pypi.python.org/pypi/Alfresco/',
     license='LICENSE.txt',
     description='Useful stuff.',
-    long_description=open('README.txt').read(),
+    long_description=open('README.md').read(),
     install_requires=[
         "cmislib >= 0.5",
         "cmislibalf>=0.3.1",
