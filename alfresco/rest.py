@@ -75,6 +75,8 @@ class AlfSession(object):
     
     # Workflow instances
     URL_TEMPLATE_WF_INSTANCES=string.Template('http://$host:$port/alfresco/service/api/workflow-instances?alf_ticket=$alf_ticket')
+    # END workflow instance
+    URL_TEMPLATE_WF_END=string.Template('http://$host:$port/alfresco/service/api/workflow-instances/${wf_id}?alf_ticket=$alf_ticket')
     
     # Workflow tasks
     URL_TEMPLATE_TASK_INSTANCES=string.Template('http://$host:$port/alfresco/service/api/task-instances?authority=${authority}&state=IN_PROGRESS&alf_ticket=$alf_ticket')
@@ -235,14 +237,16 @@ class AlfSession(object):
 
     def wf_instances(self):
         
-        url=AlfSession.URL_TEMPLATE_WF_INSTANCES.substitute(self.__dict__)
-        
-                        
+        url=AlfSession.URL_TEMPLATE_WF_INSTANCES.substitute(self.__dict__)                        
         r=requests.get(url,headers=AlfSession.HEADERS)
             
         return json.loads(r.content)['data']
 
-   
+    def wf_end(self,wf_id):
+        
+        url=AlfSession.URL_TEMPLATE_WF_END.substitute(self.__dict__,wf_id=urllib.quote(wf_id))                        
+        r=requests.delete(url,headers=AlfSession.HEADERS)
+        return json.loads(r.content)
     
     def task_instances(self,authority):
         
@@ -422,8 +426,16 @@ def test():
         # workflow instances
         #
         print '*************wf lists:'
-        pprint(alf_session.wf_defs())
+        wf_instances=alf_session.wf_instances()
+        print("#wf_instances={}".format(len(wf_instances)))
         
+        for wf in wf_instances:
+            pprint(wf)
+            #pprint(alf_session.wf_end(wf['id']))
+        #wf_instances=alf_session.wf_instances()
+        #print("#wf_instances={}".format(len(wf_instances)))
+
+
         # task list by user
         print '*************task lists:'
         tasks=alf_session.task_instances('vyang')

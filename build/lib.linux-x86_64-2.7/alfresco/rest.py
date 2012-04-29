@@ -80,6 +80,8 @@ class AlfSession(object):
     URL_TEMPLATE_TASK_INSTANCES=string.Template('http://$host:$port/alfresco/service/api/task-instances?authority=${authority}&state=IN_PROGRESS&alf_ticket=$alf_ticket')
     #URL_TEMPLATE_ALL_TASK_INSTANCES=string.Template('http://$host:$port/alfresco/service/api/task-instances?state=IN_PROGRESS&alf_ticket=$alf_ticket')
     
+    # END Workflow task 
+    URL_TEMPLATE_TASK_END=string.Template('http://$host:$port/alfresco/service/api/workflow/task/end/${task_id}?alf_ticket=$alf_ticket')
     
     # Audit
     URL_TEMPLATE_AUDIT_CLEAR=string.Template('http://$host:$port/alfresco/service/api/audit/clear/$application?alf_ticket=$alf_ticket')
@@ -244,13 +246,16 @@ class AlfSession(object):
     
     def task_instances(self,authority):
         
-        url=AlfSession.URL_TEMPLATE_TASK_INSTANCES.substitute(self.__dict__,authority=authority)
-        
-                        
+        url=AlfSession.URL_TEMPLATE_TASK_INSTANCES.substitute(self.__dict__,authority=authority)                        
         r=requests.get(url,headers=AlfSession.HEADERS)
             
         return json.loads(r.content)['data']
 
+    def task_end(self,task_id):
+        url=AlfSession.URL_TEMPLATE_TASK_END.substitute(self.__dict__,task_id=task_id)                        
+        r=requests.post(url,headers=AlfSession.HEADERS)            
+        return json.loads(r.content)
+   
    
     def share_login(self):
         
@@ -259,7 +264,7 @@ class AlfSession(object):
         headers={'Content-Type':'application/x-www-form-urlencoded','User-Agent':'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0'}
         r=requests.post(url,headers=headers,data=payload)
         return r.cookies
-        
+    
 
     def create_site(self,site):
 
@@ -424,6 +429,7 @@ def test():
         tasks=alf_session.task_instances('vyang')
         for t in tasks:
             print t['id']
+            alf_session.task_end(t['id'])
     
     
     
