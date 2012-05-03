@@ -333,13 +333,7 @@ def test():
     port='8080'
     uid='admin'
     pwd='admin'
-    #uid='vyang'
-    #pwd='password'
     
-    #host='108.171.177.147'
-    #port='80'
-    #uid='admin'
-    #pwd='NRG211EnergyPrince'
 
   
     with AlfSession(host,port,uid,pwd) as alf_session:
@@ -370,15 +364,12 @@ def test():
         
         
         ##add a user to a site with an admin role
-        #site_admin={"role":"SiteManager",'person':{'userName':'c1.admin'}}
-        #pprint(alf_session.join_site('chapter1',site_admin))
+        #site_admin={"role":"SiteManager",'person':{'userName':'site_admin'}}
+        #pprint(alf_session.join_site('site1',site_admin))
         #
-        ### add a group to a site with a role/faces/jsp/dialog/container.jsp
-        #group={"role":"SiteCollaborator",'group':{'fullName':'GROUP_chapter1'}}
-        #pprint(alf_session.join_site('chapter1',group))
         ##
         ### add a group to a site with a role
-        #group={"role":"SiteConsumer",'group':{'fullName':'GROUP_IncoseMember'}}
+        #group={"role":"SiteConsumer",'group':{'fullName':'GROUP_group1'}}
         #pprint(alf_session.join_site('chapter1',group))
         #
         
@@ -441,7 +432,7 @@ def test():
         tasks=alf_session.task_instances('vyang')
         for t in tasks:
             print t['id']
-            alf_session.task_end(t['id'])
+            #alf_session.task_end(t['id'])
     
     
     
