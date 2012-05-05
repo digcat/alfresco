@@ -250,9 +250,10 @@ class AlfSession(object):
     
     def task_instances(self,authority):
         
-        url=AlfSession.URL_TEMPLATE_TASK_INSTANCES.substitute(self.__dict__,authority=authority)                        
+        url=AlfSession.URL_TEMPLATE_TASK_INSTANCES.substitute(self.__dict__,authority=authority)
+        print "url={}".format(url)
         r=requests.get(url,headers=AlfSession.HEADERS)
-            
+        pprint(json.loads(r.content))    
         return json.loads(r.content)['data']
 
     def task_end(self,task_id):
